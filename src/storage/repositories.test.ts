@@ -1,3 +1,4 @@
+import { Blob as NodeBlob } from "node:buffer";
 import { beforeEach, describe, expect, it } from "vitest";
 import { starterIdioms } from "../domain/starterContent";
 import type { PracticeSession } from "../domain/types";
@@ -36,7 +37,7 @@ describe("repositories", () => {
       topic: "Work and Careers",
       prompt: "Describe a skill you learned.",
       selectedIdiomIds: ["idiom-steep-learning-curve"],
-      recordingBlob: new Blob(["audio"], { type: "audio/webm" }),
+      recordingBlob: new NodeBlob(["audio"], { type: "audio/webm" }) as unknown as Blob,
       recordingDuration: 42,
       feedbackStatus: "failed",
       createdAt: "2026-05-26T00:00:00.000Z",
