@@ -30,6 +30,24 @@ describe("repositories", () => {
     expect(idioms.some((idiom) => idiom.id === "user-idiom-1")).toBe(true);
   });
 
+  it("adds missing starter idioms without overwriting saved progress", async () => {
+    await saveIdiom({
+      ...starterIdioms[0],
+      reviewCount: 4,
+      mistakeCount: 1,
+      confidence: "practicing",
+      updatedAt: "2026-05-28T12:00:00.000Z"
+    });
+
+    const idioms = await listIdioms();
+    const preserved = idioms.find((idiom) => idiom.id === starterIdioms[0].id);
+
+    expect(idioms).toHaveLength(starterIdioms.length);
+    expect(preserved?.reviewCount).toBe(4);
+    expect(preserved?.mistakeCount).toBe(1);
+    expect(preserved?.confidence).toBe("practicing");
+  });
+
   it("persists a practice session with audio blob", async () => {
     const session: PracticeSession = {
       id: "session-1",
