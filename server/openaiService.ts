@@ -28,16 +28,21 @@ const feedbackSchema = z.object({
   transcript: z.string()
 });
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
 const feedbackModel = process.env.OPENAI_FEEDBACK_MODEL ?? "gpt-5.4-mini";
 const transcriptionModel = process.env.OPENAI_TRANSCRIPTION_MODEL ?? "gpt-4o-transcribe";
 
+let client: OpenAI | undefined;
+
+function getClient() {
+  client ??= new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+  });
+  return client;
+}
+
 export const openAiService: AiService = {
   async generateIdioms(input) {
-    const response = await client.responses.parse({
+    const response = await getClient().responses.parse({
       model: feedbackModel,
       input: [
         {
@@ -62,7 +67,7 @@ export const openAiService: AiService = {
     let transcript = "";
 
     try {
-      const transcription = await client.audio.transcriptions.create({
+      const transcription = await getClient().audio.transcriptions.create({
         file: fs.createReadStream(input.filePath),
         model: transcriptionModel
       });
@@ -71,7 +76,7 @@ export const openAiService: AiService = {
       await unlink(input.filePath).catch(() => undefined);
     }
 
-    const response = await client.responses.parse({
+    const response = await getClient().responses.parse({
       model: feedbackModel,
       input: [
         {
