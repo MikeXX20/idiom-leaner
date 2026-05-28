@@ -4,6 +4,8 @@ export type FeedbackStatus = "none" | "pending" | "complete" | "failed";
 export type RiskLevel = "low" | "medium" | "high";
 export type Formality = "neutral" | "casual" | "formal";
 export type Confidence = "new" | "practicing" | "confident";
+export type Difficulty = "easy" | "medium" | "advanced";
+export type IeltsSafety = "safe" | "careful" | "risky";
 
 export interface Idiom {
   id: string;
@@ -12,10 +14,16 @@ export interface Idiom {
   topics: string[];
   formality: Formality;
   riskLevel: RiskLevel;
+  difficulty?: Difficulty;
+  ieltsSafety?: IeltsSafety;
   example: string;
   usageWarning: string;
   source: IdiomSource;
   confidence: Confidence;
+  lastReviewedAt?: string;
+  reviewCount?: number;
+  mistakeCount?: number;
+  nextReviewAt?: string;
   createdAt: string;
   updatedAt: string;
 }
