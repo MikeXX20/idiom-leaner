@@ -1,6 +1,6 @@
 # IELTS Idiom Speaking Coach
 
-Local-first web app for IELTS Speaking learners who want to practice idioms in recorded answers.
+Local-first web app for IELTS Speaking learners who want to recite idioms, practice topic vocabulary, record answers, and review idiom feedback.
 
 ## Run locally
 
