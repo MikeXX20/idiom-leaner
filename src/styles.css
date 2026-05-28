@@ -56,3 +56,137 @@ p {
   color: #47536b;
   font-size: 1.06rem;
 }
+
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 18px 0;
+}
+
+.top-nav div,
+.button-row,
+.panel-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.top-nav button,
+.secondary-button,
+.primary-button,
+.danger-button {
+  border: 1px solid #c9d1df;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #172033;
+  background: #fffdfa;
+}
+
+.top-nav button[aria-current="true"],
+.primary-button {
+  color: #fff;
+  border-color: #254f8f;
+  background: #254f8f;
+}
+
+.danger-button {
+  color: #fff;
+  border-color: #a13838;
+  background: #a13838;
+}
+
+.page-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.8fr);
+  gap: 28px;
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 36px 0 64px;
+}
+
+.practice-panel,
+.idiom-panel,
+.content-section {
+  border: 1px solid #d9dfeb;
+  border-radius: 8px;
+  padding: 24px;
+  background: #fffdfa;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  margin: 22px 0;
+  color: #34415a;
+  font-weight: 700;
+}
+
+.field select,
+.field input,
+.field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #c9d1df;
+  border-radius: 8px;
+  padding: 12px;
+  color: #172033;
+  background: #fff;
+}
+
+.prompt-card,
+.feedback-box {
+  border-left: 4px solid #254f8f;
+  margin: 18px 0;
+  padding: 16px;
+  background: #eef3fb;
+}
+
+.idiom-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.idiom-choice {
+  display: flex;
+  gap: 10px;
+  border: 1px solid #d9dfeb;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.idiom-choice small {
+  display: block;
+  color: #5d6c89;
+}
+
+.status {
+  margin-top: 12px;
+  color: #47536b;
+}
+
+.status.error {
+  color: #a13838;
+}
+
+audio {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+}
+
+@media (max-width: 820px) {
+  .top-nav {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .page-grid {
+    grid-template-columns: 1fr;
+  }
+}
