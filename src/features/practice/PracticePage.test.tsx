@@ -67,4 +67,17 @@ describe("PracticePage", () => {
       );
     });
   });
+
+  it("explains when idiom generation needs the API", async () => {
+    const user = userEvent.setup();
+    vi.mocked(aiClient.generateIdioms).mockRejectedValue(new Error("Not found"));
+    render(<PracticePage />);
+
+    await screen.findByText("a steep learning curve");
+    await user.click(screen.getByRole("button", { name: /generate/i }));
+
+    expect(
+      await screen.findByText(/AI generation needs the API/i)
+    ).toBeInTheDocument();
+  });
 });

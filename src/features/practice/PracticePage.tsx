@@ -74,7 +74,9 @@ export function PracticePage() {
       setIdioms(await listIdioms());
       setMessage(`Saved ${newIdioms.length} generated idioms.`);
     } catch {
-      setMessage("Could not generate idioms right now.");
+      setMessage(
+        "AI generation needs the API. The public demo already includes curated idioms for this topic."
+      );
     } finally {
       setIsGenerating(false);
     }
