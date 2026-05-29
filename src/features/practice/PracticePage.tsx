@@ -31,6 +31,10 @@ function generatedToIdiom(payload: GeneratedIdiomPayload, topic: string): Idiom 
   };
 }
 
+function areAiFeaturesEnabled() {
+  return import.meta.env.VITE_ENABLE_AI_FEATURES === "true";
+}
+
 export function PracticePage() {
   const [idioms, setIdioms] = useState<Idiom[]>([]);
   const [selectedPromptId, setSelectedPromptId] = useState(starterPrompts[0].id);
@@ -40,6 +44,7 @@ export function PracticePage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [message, setMessage] = useState("");
   const recorder = useRecorder();
+  const aiFeaturesEnabled = areAiFeaturesEnabled();
 
   const prompt = useMemo<SpeakingPrompt>(
     () => starterPrompts.find((item) => item.id === selectedPromptId) ?? starterPrompts[0],
@@ -166,14 +171,22 @@ export function PracticePage() {
               Stop recording
             </button>
           )}
-          <button
-            className="secondary-button"
-            disabled={isFeedbackLoading}
-            onClick={handleFeedback}
-          >
-            {isFeedbackLoading ? "Reviewing..." : "Get feedback"}
-          </button>
+          {aiFeaturesEnabled && (
+            <button
+              className="secondary-button"
+              disabled={isFeedbackLoading}
+              onClick={handleFeedback}
+            >
+              {isFeedbackLoading ? "Reviewing..." : "Get feedback"}
+            </button>
+          )}
         </div>
+        {!aiFeaturesEnabled && (
+          <p className="status">
+            Public version uses the curated idiom deck. AI generation and feedback need a
+            private API key.
+          </p>
+        )}
         {recorder.error && <p className="status error">{recorder.error}</p>}
         {recorder.recording && (
           <audio aria-label="Recorded answer playback" controls src={recorder.recording.url} />
@@ -188,9 +201,15 @@ export function PracticePage() {
             <p className="eyebrow">Prep</p>
             <h2>Topic idioms</h2>
           </div>
-          <button className="secondary-button" disabled={isGenerating} onClick={handleGenerateIdioms}>
-            {isGenerating ? "Generating..." : "Generate"}
-          </button>
+          {aiFeaturesEnabled && (
+            <button
+              className="secondary-button"
+              disabled={isGenerating}
+              onClick={handleGenerateIdioms}
+            >
+              {isGenerating ? "Generating..." : "Generate"}
+            </button>
+          )}
         </div>
         <div className="idiom-list">
           {topicIdioms.map((idiom) => (

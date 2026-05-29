@@ -25,6 +25,7 @@ vi.mock("./useRecorder", () => ({
 
 describe("PracticePage", () => {
   beforeEach(() => {
+    vi.stubEnv("VITE_ENABLE_AI_FEATURES", "true");
     vi.mocked(repositories.listIdioms).mockResolvedValue(starterIdioms);
     vi.mocked(repositories.saveSession).mockResolvedValue(undefined);
     vi.mocked(repositories.saveIdiom).mockResolvedValue(undefined);
@@ -79,5 +80,16 @@ describe("PracticePage", () => {
     expect(
       await screen.findByText(/AI generation needs the API/i)
     ).toBeInTheDocument();
+  });
+
+  it("uses the curated deck when AI features are disabled", async () => {
+    vi.stubEnv("VITE_ENABLE_AI_FEATURES", "false");
+
+    render(<PracticePage />);
+
+    expect(await screen.findByText("a steep learning curve")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /generate/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /get feedback/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/public version uses the curated idiom deck/i)).toBeInTheDocument();
   });
 });
