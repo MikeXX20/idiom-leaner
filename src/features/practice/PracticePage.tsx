@@ -35,6 +35,10 @@ function areAiFeaturesEnabled() {
   return import.meta.env.VITE_ENABLE_AI_FEATURES === "true";
 }
 
+function areFeedbackFeaturesEnabled() {
+  return import.meta.env.VITE_ENABLE_FEEDBACK_FEATURES === "true";
+}
+
 export function PracticePage() {
   const [idioms, setIdioms] = useState<Idiom[]>([]);
   const [selectedPromptId, setSelectedPromptId] = useState(starterPrompts[0].id);
@@ -45,6 +49,7 @@ export function PracticePage() {
   const [message, setMessage] = useState("");
   const recorder = useRecorder();
   const aiFeaturesEnabled = areAiFeaturesEnabled();
+  const feedbackFeaturesEnabled = areFeedbackFeaturesEnabled();
 
   const prompt = useMemo<SpeakingPrompt>(
     () => starterPrompts.find((item) => item.id === selectedPromptId) ?? starterPrompts[0],
@@ -171,7 +176,7 @@ export function PracticePage() {
               Stop recording
             </button>
           )}
-          {aiFeaturesEnabled && (
+          {feedbackFeaturesEnabled && (
             <button
               className="secondary-button"
               disabled={isFeedbackLoading}
@@ -186,6 +191,9 @@ export function PracticePage() {
             Public version uses the curated idiom deck. AI generation and feedback need a
             private API key.
           </p>
+        )}
+        {aiFeaturesEnabled && !feedbackFeaturesEnabled && (
+          <p className="status">Audio feedback needs a transcription provider.</p>
         )}
         {recorder.error && <p className="status error">{recorder.error}</p>}
         {recorder.recording && (

@@ -28,22 +28,100 @@ const feedbackSchema = z.object({
   transcript: z.string()
 });
 
-const feedbackModel = process.env.OPENAI_FEEDBACK_MODEL ?? "gpt-5.4-mini";
-const transcriptionModel = process.env.OPENAI_TRANSCRIPTION_MODEL ?? "gpt-4o-transcribe";
+type AiProvider = "openai" | "deepseek";
+
+interface AiProviderConfig {
+  provider: AiProvider;
+  apiKey?: string;
+  baseURL?: string;
+  feedbackModel: string;
+  transcriptionModel: string;
+}
 
 let client: OpenAI | undefined;
+let clientConfigKey = "";
 
-function getClient() {
-  client ??= new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
+export function resolveAiProviderConfig(
+  env: NodeJS.ProcessEnv = process.env
+): AiProviderConfig {
+  const provider = env.LLM_PROVIDER === "deepseek" ? "deepseek" : "openai";
+
+  if (provider === "deepseek") {
+    return {
+      provider,
+      apiKey: env.DEEPSEEK_API_KEY,
+      baseURL: env.DEEPSEEK_BASE_URL ?? "https://api.deepseek.com",
+      feedbackModel: env.DEEPSEEK_MODEL ?? "deepseek-v4-flash",
+      transcriptionModel: env.OPENAI_TRANSCRIPTION_MODEL ?? "gpt-4o-transcribe"
+    };
+  }
+
+  return {
+    provider,
+    apiKey: env.OPENAI_API_KEY,
+    feedbackModel: env.OPENAI_FEEDBACK_MODEL ?? "gpt-5.4-mini",
+    transcriptionModel: env.OPENAI_TRANSCRIPTION_MODEL ?? "gpt-4o-transcribe"
+  };
+}
+
+function getClient(config = resolveAiProviderConfig()) {
+  const nextConfigKey = JSON.stringify({
+    provider: config.provider,
+    apiKey: config.apiKey,
+    baseURL: config.baseURL
   });
+
+  if (!client || clientConfigKey !== nextConfigKey) {
+    client = new OpenAI({
+      apiKey: config.apiKey,
+      baseURL: config.baseURL
+    });
+    clientConfigKey = nextConfigKey;
+  }
+
   return client;
+}
+
+function parseGeneratedIdioms(rawContent: string | null | undefined) {
+  if (!rawContent) {
+    return { idioms: [] };
+  }
+
+  return generatedIdiomSchema.parse(JSON.parse(rawContent));
 }
 
 export const openAiService: AiService = {
   async generateIdioms(input) {
-    const response = await getClient().responses.parse({
-      model: feedbackModel,
+    const config = resolveAiProviderConfig();
+
+    if (config.provider === "deepseek") {
+      const response = await getClient(config).chat.completions.create({
+        model: config.feedbackModel,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You help IELTS Speaking learners around Band 6.5-7.5 use idioms naturally. Return only valid JSON."
+          },
+          {
+            role: "user",
+            content: [
+              `Generate 5 idioms or natural expressions for IELTS ${input.ieltsPart}, topic: ${input.topic}.`,
+              "Return JSON with this shape:",
+              '{"idioms":[{"phrase":"...","meaning":"...","topics":["..."],"formality":"neutral","riskLevel":"low","example":"...","usageWarning":"..."}]}',
+              "Use formality as neutral, casual, or formal.",
+              "Use riskLevel as low, medium, or high."
+            ].join("\n")
+          }
+        ],
+        response_format: { type: "json_object" }
+      });
+
+      return parseGeneratedIdioms(response.choices[0]?.message.content);
+    }
+
+    const response = await getClient(config).responses.parse({
+      model: config.feedbackModel,
       input: [
         {
           role: "system",
@@ -64,20 +142,26 @@ export const openAiService: AiService = {
   },
 
   async reviewRecording(input: ReviewRecordingInput) {
+    const config = resolveAiProviderConfig();
+
+    if (config.provider === "deepseek") {
+      throw new Error("Audio feedback needs a transcription provider.");
+    }
+
     let transcript = "";
 
     try {
-      const transcription = await getClient().audio.transcriptions.create({
+      const transcription = await getClient(config).audio.transcriptions.create({
         file: fs.createReadStream(input.filePath),
-        model: transcriptionModel
+        model: config.transcriptionModel
       });
       transcript = transcription.text;
     } finally {
       await unlink(input.filePath).catch(() => undefined);
     }
 
-    const response = await getClient().responses.parse({
-      model: feedbackModel,
+    const response = await getClient(config).responses.parse({
+      model: config.feedbackModel,
       input: [
         {
           role: "system",
