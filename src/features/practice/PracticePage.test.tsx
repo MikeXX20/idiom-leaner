@@ -92,7 +92,7 @@ describe("PracticePage", () => {
     expect(await screen.findByText("a steep learning curve")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /generate/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /get feedback/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/public version uses the curated idiom deck/i)).toBeInTheDocument();
+    expect(screen.getByText(/study with the curated deck/i)).toBeInTheDocument();
   });
 
   it("can enable generation without audio feedback", async () => {
@@ -104,6 +104,6 @@ describe("PracticePage", () => {
     expect(await screen.findByText("a steep learning curve")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /generate/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /get feedback/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/audio feedback needs a transcription provider/i)).toBeInTheDocument();
+    expect(screen.getByText(/deepseek generation is on/i)).toBeInTheDocument();
   });
 });

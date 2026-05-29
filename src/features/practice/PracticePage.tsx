@@ -188,12 +188,15 @@ export function PracticePage() {
         </div>
         {!aiFeaturesEnabled && (
           <p className="status">
-            Public version uses the curated idiom deck. AI generation and feedback need a
-            private API key.
+            Study with the curated deck, choose a few idioms, and record a practice answer.
+            Use Recite when you want focused memory work.
           </p>
         )}
         {aiFeaturesEnabled && !feedbackFeaturesEnabled && (
-          <p className="status">Audio feedback needs a transcription provider.</p>
+          <p className="status">
+            DeepSeek generation is on. Audio feedback is paused, so use the generated idioms
+            for self-practice.
+          </p>
         )}
         {recorder.error && <p className="status error">{recorder.error}</p>}
         {recorder.recording && (

@@ -27,6 +27,16 @@ describe("RecitePage", () => {
     expect(screen.getByLabelText(/write your own IELTS-style sentence/i)).toBeInTheDocument();
   });
 
+  it("shows a study snapshot for the learner", async () => {
+    render(<RecitePage />);
+
+    expect(await screen.findByText("Due now")).toBeInTheDocument();
+    expect(screen.getAllByText(String(starterIdioms.length)).length).toBeGreaterThan(0);
+    expect(screen.getByText("New")).toBeInTheDocument();
+    expect(screen.getByText("Weak")).toBeInTheDocument();
+    expect(screen.getByText("Confident")).toBeInTheDocument();
+  });
+
   it("saves progress and advances after the learner marks a card", async () => {
     const user = userEvent.setup();
     render(<RecitePage />);
@@ -65,6 +75,7 @@ describe("RecitePage", () => {
     vi.mocked(repositories.listIdioms).mockResolvedValue([]);
     render(<RecitePage />);
 
-    expect(await screen.findByText(/no idioms are ready/i)).toBeInTheDocument();
+    expect(await screen.findByText(/no due cards right now/i)).toBeInTheDocument();
+    expect(screen.getByText(/switch to topic practice/i)).toBeInTheDocument();
   });
 });

@@ -10,6 +10,14 @@ export interface ReviewQueueOptions {
   limit?: number;
 }
 
+export interface StudyStats {
+  total: number;
+  due: number;
+  new: number;
+  weak: number;
+  confident: number;
+}
+
 const defaultLimit = 10;
 const hour = 60 * 60 * 1000;
 
@@ -37,6 +45,20 @@ export function buildReviewQueue(idioms: Idiom[], options: ReviewQueueOptions) {
   return [...filtered]
     .sort((first, second) => score(second, now) - score(first, now))
     .slice(0, limit);
+}
+
+export function buildStudyStats(idioms: Idiom[], now = new Date()): StudyStats {
+  const normalized = idioms.map(normalizeStudyFields);
+
+  return {
+    total: normalized.length,
+    due: normalized.filter((idiom) => isDueOrNew(idiom, now)).length,
+    new: normalized.filter((idiom) => idiom.confidence === "new").length,
+    weak: normalized.filter(
+      (idiom) => idiom.confidence === "practicing" || (idiom.mistakeCount ?? 0) > 0
+    ).length,
+    confident: normalized.filter((idiom) => idiom.confidence === "confident").length
+  };
 }
 
 export function markIdiomReviewed(

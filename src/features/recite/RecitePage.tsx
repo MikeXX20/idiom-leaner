@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   buildReviewQueue,
+  buildStudyStats,
   markIdiomReviewed,
   type ReviewMode,
   type ReviewResult
@@ -43,6 +44,7 @@ export function RecitePage() {
       }),
     [idioms, mode, topic]
   );
+  const stats = useMemo(() => buildStudyStats(idioms), [idioms]);
 
   const current = queue[cardIndex];
 
@@ -79,6 +81,25 @@ export function RecitePage() {
       <p className="eyebrow">Active recall</p>
       <h1>Recite idioms</h1>
 
+      <div className="study-stats" aria-label="Study snapshot">
+        <article>
+          <strong>{stats.due}</strong>
+          <span>Due now</span>
+        </article>
+        <article>
+          <strong>{stats.new}</strong>
+          <span>New</span>
+        </article>
+        <article>
+          <strong>{stats.weak}</strong>
+          <span>Weak</span>
+        </article>
+        <article>
+          <strong>{stats.confident}</strong>
+          <span>Confident</span>
+        </article>
+      </div>
+
       <div className="button-row" role="group" aria-label="Recite mode">
         <button aria-current={mode === "daily"} onClick={() => changeMode("daily")}>
           Daily Review
@@ -108,7 +129,12 @@ export function RecitePage() {
         </label>
       )}
 
-      {!current && <p className="status">No idioms are ready for this review.</p>}
+      {!current && (
+        <div className="empty-state">
+          <strong>No due cards right now.</strong>
+          <p>Switch to Topic Practice to drill a specific IELTS theme whenever you want.</p>
+        </div>
+      )}
 
       {current && (
         <article className="recite-card">

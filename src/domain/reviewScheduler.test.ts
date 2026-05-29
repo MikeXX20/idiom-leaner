@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { starterIdioms } from "./idiomDeck";
-import { buildReviewQueue, markIdiomReviewed, normalizeStudyFields } from "./reviewScheduler";
+import {
+  buildReviewQueue,
+  buildStudyStats,
+  markIdiomReviewed,
+  normalizeStudyFields
+} from "./reviewScheduler";
 import type { Idiom } from "./types";
 
 const now = new Date("2026-05-28T12:00:00.000Z");
@@ -87,5 +92,33 @@ describe("reviewScheduler", () => {
     expect(reviewed.mistakeCount).toBe(1);
     expect(reviewed.lastReviewedAt).toBe("2026-05-28T12:00:00.000Z");
     expect(new Date(reviewed.nextReviewAt ?? "").getTime()).toBeGreaterThan(now.getTime());
+  });
+
+  it("summarizes review readiness and weak cards", () => {
+    const stats = buildStudyStats(
+      [
+        idiom({ id: "idiom-new", confidence: "new" }),
+        idiom({
+          id: "idiom-weak",
+          confidence: "practicing",
+          mistakeCount: 2,
+          nextReviewAt: "2026-05-28T09:00:00.000Z"
+        }),
+        idiom({
+          id: "idiom-confident",
+          confidence: "confident",
+          nextReviewAt: "2026-06-01T09:00:00.000Z"
+        })
+      ],
+      now
+    );
+
+    expect(stats).toEqual({
+      total: 3,
+      due: 2,
+      new: 1,
+      weak: 1,
+      confident: 1
+    });
   });
 });
