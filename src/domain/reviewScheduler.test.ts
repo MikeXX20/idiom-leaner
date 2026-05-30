@@ -94,6 +94,28 @@ describe("reviewScheduler", () => {
     expect(new Date(reviewed.nextReviewAt ?? "").getTime()).toBeGreaterThan(now.getTime());
   });
 
+  it("counts hard reviews as weak and good reviews as confident", () => {
+    const hard = markIdiomReviewed(idiom({ id: "idiom-hard" }), "Hard", now);
+    const good = markIdiomReviewed(idiom({ id: "idiom-good" }), "Good", now);
+    const recovered = markIdiomReviewed(
+      idiom({
+        id: "idiom-recovered",
+        confidence: "practicing",
+        mistakeCount: 2
+      }),
+      "Good",
+      now
+    );
+
+    const stats = buildStudyStats([hard, good, recovered], now);
+
+    expect(hard.confidence).toBe("practicing");
+    expect(good.confidence).toBe("confident");
+    expect(recovered.confidence).toBe("confident");
+    expect(stats.weak).toBe(1);
+    expect(stats.confident).toBe(2);
+  });
+
   it("summarizes review readiness and weak cards", () => {
     const stats = buildStudyStats(
       [

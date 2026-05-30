@@ -93,6 +93,28 @@ p {
   background: #254f8f;
 }
 
+.segmented-control {
+  display: inline-flex;
+  gap: 4px;
+  border: 1px solid #c9d1df;
+  border-radius: 8px;
+  padding: 4px;
+  background: #eef3fb;
+}
+
+.segmented-control button {
+  border: 0;
+  border-radius: 6px;
+  padding: 9px 14px;
+  color: #34415a;
+  background: transparent;
+}
+
+.segmented-control button[aria-current="true"] {
+  color: #fff;
+  background: #254f8f;
+}
+
 .danger-button {
   color: #fff;
   border-color: #a13838;
@@ -206,6 +228,20 @@ p {
 
 .status.error {
   color: #a13838;
+}
+
+.mode-help,
+.review-help {
+  margin-top: 10px;
+  color: #5d6c89;
+  font-size: 0.95rem;
+}
+
+.review-help {
+  border: 1px solid #d9dfeb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #f8fbff;
 }
 
 .study-stats {

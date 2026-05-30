@@ -100,7 +100,7 @@ export function RecitePage() {
         </article>
       </div>
 
-      <div className="button-row" role="group" aria-label="Recite mode">
+      <div className="segmented-control" role="group" aria-label="Recite mode">
         <button aria-current={mode === "daily"} onClick={() => changeMode("daily")}>
           Daily Review
         </button>
@@ -108,6 +108,10 @@ export function RecitePage() {
           Topic Practice
         </button>
       </div>
+      <p className="mode-help">
+        Daily Review uses cards due today. Topic Practice ignores the schedule and drills one
+        theme.
+      </p>
 
       {mode === "topic" && (
         <label className="field">
@@ -169,6 +173,10 @@ export function RecitePage() {
                   Good
                 </button>
               </div>
+              <p className="review-help">
+                Again: I forgot it, review soon. Hard: I remembered it slowly, keep it weak.
+                Good: I remembered it naturally, mark it confident.
+              </p>
             </div>
           )}
         </article>

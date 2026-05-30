@@ -54,9 +54,7 @@ export function buildStudyStats(idioms: Idiom[], now = new Date()): StudyStats {
     total: normalized.length,
     due: normalized.filter((idiom) => isDueOrNew(idiom, now)).length,
     new: normalized.filter((idiom) => idiom.confidence === "new").length,
-    weak: normalized.filter(
-      (idiom) => idiom.confidence === "practicing" || (idiom.mistakeCount ?? 0) > 0
-    ).length,
+    weak: normalized.filter((idiom) => idiom.confidence === "practicing").length,
     confident: normalized.filter((idiom) => idiom.confidence === "confident").length
   };
 }
@@ -75,7 +73,7 @@ export function markIdiomReviewed(
 
   return {
     ...normalized,
-    confidence: confidenceFor(result, reviewCount, mistakeCount),
+    confidence: confidenceFor(result),
     reviewCount,
     mistakeCount,
     lastReviewedAt: reviewedAt.toISOString(),
@@ -116,10 +114,10 @@ function delayFor(result: ReviewResult, reviewCount: number) {
   return Math.min(7, Math.max(2, reviewCount + 1)) * 24 * hour;
 }
 
-function confidenceFor(result: ReviewResult, reviewCount: number, mistakeCount: number): Confidence {
+function confidenceFor(result: ReviewResult): Confidence {
   if (result !== "Good") {
     return "practicing";
   }
 
-  return reviewCount >= 3 && mistakeCount === 0 ? "confident" : "practicing";
+  return "confident";
 }

@@ -37,6 +37,20 @@ describe("RecitePage", () => {
     expect(screen.getByText("Confident")).toBeInTheDocument();
   });
 
+  it("explains the recite modes and review buttons", async () => {
+    const user = userEvent.setup();
+    render(<RecitePage />);
+
+    expect(await screen.findByText(/daily review uses cards due today/i)).toBeInTheDocument();
+    expect(screen.getByText(/topic practice ignores the schedule/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /reveal idiom/i }));
+
+    expect(screen.getByText(/again: i forgot it/i)).toBeInTheDocument();
+    expect(screen.getByText(/hard: i remembered it slowly/i)).toBeInTheDocument();
+    expect(screen.getByText(/good: i remembered it naturally/i)).toBeInTheDocument();
+  });
+
   it("saves progress and advances after the learner marks a card", async () => {
     const user = userEvent.setup();
     render(<RecitePage />);
