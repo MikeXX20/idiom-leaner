@@ -150,6 +150,35 @@ p {
   background: #eef3fb;
 }
 
+.practice-tips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.practice-tips article {
+  border: 1px solid #d9dfeb;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f8fbff;
+}
+
+.practice-tips strong,
+.practice-tips span {
+  display: block;
+}
+
+.practice-tips strong {
+  color: #254f8f;
+}
+
+.practice-tips span {
+  margin-top: 4px;
+  color: #5d6c89;
+  font-size: 0.95rem;
+}
+
 .idiom-list {
   display: grid;
   gap: 12px;
@@ -283,5 +312,9 @@ audio {
 
   .study-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .practice-tips {
+    grid-template-columns: 1fr;
   }
 }

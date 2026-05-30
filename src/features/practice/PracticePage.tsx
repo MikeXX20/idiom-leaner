@@ -44,6 +44,40 @@ function areFeedbackFeaturesEnabled() {
   return import.meta.env.VITE_ENABLE_FEEDBACK_FEATURES === "true";
 }
 
+function buildPracticeTips(aiFeaturesEnabled: boolean) {
+  if (!aiFeaturesEnabled) {
+    return [
+      {
+        title: "Choose",
+        body: "Pick a prompt and scan the curated idioms for that topic."
+      },
+      {
+        title: "Tick",
+        body: "Choose the idioms you want to use in your answer."
+      },
+      {
+        title: "Recite",
+        body: "Use Recite when you want to memorize the idioms first."
+      }
+    ];
+  }
+
+  return [
+    {
+      title: "Generate",
+      body: "Add 5 more expressions for this IELTS topic."
+    },
+    {
+      title: "Tick",
+      body: "Choose the idioms you want to use in your answer."
+    },
+    {
+      title: "Get feedback",
+      body: "Paste your answer and check whether they sound natural."
+    }
+  ];
+}
+
 export function PracticePage() {
   const [idioms, setIdioms] = useState<Idiom[]>([]);
   const [selectedPromptId, setSelectedPromptId] = useState(starterPrompts[0].id);
@@ -56,6 +90,7 @@ export function PracticePage() {
   const recorder = useRecorder();
   const aiFeaturesEnabled = areAiFeaturesEnabled();
   const feedbackFeaturesEnabled = areFeedbackFeaturesEnabled();
+  const practiceTips = buildPracticeTips(aiFeaturesEnabled);
 
   const prompt = useMemo<SpeakingPrompt>(
     () => starterPrompts.find((item) => item.id === selectedPromptId) ?? starterPrompts[0],
@@ -230,6 +265,14 @@ export function PracticePage() {
           <strong>{prompt.topic}</strong>
           <p>{prompt.prompt}</p>
         </article>
+        <section className="practice-tips" aria-label="How practice works">
+          {practiceTips.map((tip) => (
+            <article key={tip.title}>
+              <strong>{tip.title}</strong>
+              <span>{tip.body}</span>
+            </article>
+          ))}
+        </section>
         <div className="button-row">
           {recorder.status !== "recording" ? (
             <button className="primary-button" onClick={recorder.start}>

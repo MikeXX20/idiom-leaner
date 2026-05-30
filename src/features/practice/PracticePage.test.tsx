@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { starterIdioms, starterPrompts } from "../../domain/starterContent";
@@ -53,6 +53,19 @@ describe("PracticePage", () => {
 
     expect(await screen.findByText(starterPrompts[0].topic)).toBeInTheDocument();
     expect(screen.getByText("a steep learning curve")).toBeInTheDocument();
+  });
+
+  it("explains the practice flow for new users", async () => {
+    render(<PracticePage />);
+
+    const guide = await screen.findByLabelText("How practice works");
+
+    expect(within(guide).getByText("Generate")).toBeInTheDocument();
+    expect(within(guide).getByText(/add 5 more expressions/i)).toBeInTheDocument();
+    expect(within(guide).getByText("Tick")).toBeInTheDocument();
+    expect(within(guide).getByText(/choose the idioms you want to use/i)).toBeInTheDocument();
+    expect(within(guide).getByText("Get feedback")).toBeInTheDocument();
+    expect(within(guide).getByText(/check whether they sound natural/i)).toBeInTheDocument();
   });
 
   it("saves a reviewed session after feedback", async () => {
