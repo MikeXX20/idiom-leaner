@@ -31,6 +31,16 @@ function createTestApp() {
           nextStep: "Keep using one idiom per answer.",
           transcript: "Our team stayed on the same wavelength."
         }
+      }),
+      reviewText: async () => ({
+        feedback: {
+          naturalUsage: ["The typed answer used the idiom naturally."],
+          forcedUsage: [],
+          betterAlternatives: [],
+          improvedSampleSentence: "Our team stayed on the same wavelength during the project.",
+          nextStep: "Add one concrete detail after the idiom.",
+          transcript: "Our team stayed on the same wavelength."
+        }
       })
     })
   );
@@ -70,5 +80,29 @@ describe("api routes", () => {
       .expect(200);
 
     expect(response.body.feedback.naturalUsage).toEqual(["The idiom sounded natural."]);
+  });
+
+  it("rejects text feedback requests without an answer", async () => {
+    const response = await request(createTestApp())
+      .post("/api/feedback/text")
+      .send({ topic: "Work and Careers", ieltsPart: "Part 2" })
+      .expect(400);
+
+    expect(response.body.error).toBe("Answer text is required.");
+  });
+
+  it("returns feedback for a typed answer", async () => {
+    const response = await request(createTestApp())
+      .post("/api/feedback/text")
+      .send({
+        answerText: "Our team stayed on the same wavelength.",
+        ieltsPart: "Part 2",
+        topic: "Work and Careers",
+        prompt: "Describe a project.",
+        selectedIdioms: ["on the same wavelength"]
+      })
+      .expect(200);
+
+    expect(response.body.feedback.nextStep).toBe("Add one concrete detail after the idiom.");
   });
 });

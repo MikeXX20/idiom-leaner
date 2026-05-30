@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { generateIdioms, requestFeedback } from "./aiClient";
+import { generateIdioms, requestFeedback, requestTextFeedback } from "./aiClient";
 
 describe("aiClient", () => {
   it("posts topic context to generate idioms", async () => {
@@ -58,5 +58,46 @@ describe("aiClient", () => {
     expect(init.method).toBe("POST");
     expect(init.body).toBeInstanceOf(FormData);
     expect(result.nextStep).toContain("one idiom");
+  });
+
+  it("posts a typed answer for text feedback", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        feedback: {
+          naturalUsage: ["The idiom fits the education topic."],
+          forcedUsage: [],
+          betterAlternatives: ["Try one clearer example."],
+          improvedSampleSentence: "The course had a steep learning curve, but I kept going.",
+          nextStep: "Use the idiom once, then explain it naturally.",
+          transcript: "The course had a steep learning curve."
+        }
+      })
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await requestTextFeedback({
+      answerText: "The course had a steep learning curve.",
+      ieltsPart: "Part 2",
+      topic: "Education",
+      prompt: "Describe a teacher.",
+      selectedIdioms: ["a steep learning curve"]
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/feedback/text",
+      expect.objectContaining({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          answerText: "The course had a steep learning curve.",
+          ieltsPart: "Part 2",
+          topic: "Education",
+          prompt: "Describe a teacher.",
+          selectedIdioms: ["a steep learning curve"]
+        })
+      })
+    );
+    expect(result.nextStep).toContain("Use the idiom once");
   });
 });

@@ -3,7 +3,7 @@ import { unlink } from "node:fs/promises";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
-import type { AiService, ReviewRecordingInput } from "./types";
+import type { AiService, ReviewRecordingInput, ReviewTextInput } from "./types";
 
 const generatedIdiomSchema = z.object({
   idioms: z.array(
@@ -90,6 +90,85 @@ function parseGeneratedIdioms(rawContent: string | null | undefined) {
   return generatedIdiomSchema.parse(JSON.parse(rawContent));
 }
 
+function fallbackFeedback(transcript: string) {
+  return {
+    naturalUsage: [],
+    forcedUsage: [],
+    betterAlternatives: [],
+    improvedSampleSentence: "",
+    nextStep: "Review the answer and try again.",
+    transcript
+  };
+}
+
+function parseFeedbackContent(rawContent: string | null | undefined, transcript: string) {
+  if (!rawContent) {
+    return fallbackFeedback(transcript);
+  }
+
+  return feedbackSchema.parse(JSON.parse(rawContent));
+}
+
+function buildFeedbackPrompt(input: ReviewTextInput, transcript: string) {
+  return [
+    `IELTS part: ${input.ieltsPart}`,
+    `Topic: ${input.topic}`,
+    `Prompt: ${input.prompt}`,
+    `Selected idioms: ${input.selectedIdioms.join(", ") || "none"}`,
+    `Answer: ${transcript}`
+  ].join("\n");
+}
+
+async function reviewTranscript(input: ReviewTextInput, transcript: string) {
+  const config = resolveAiProviderConfig();
+
+  if (config.provider === "deepseek") {
+    const response = await getClient(config).chat.completions.create({
+      model: config.feedbackModel,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are an IELTS Speaking vocabulary coach. Return only valid JSON. Do not give an official IELTS score. Focus on whether idioms sound natural, whether they are overused, and safer alternatives."
+        },
+        {
+          role: "user",
+          content: [
+            buildFeedbackPrompt(input, transcript),
+            "Return JSON with this shape:",
+            '{"naturalUsage":["..."],"forcedUsage":["..."],"betterAlternatives":["..."],"improvedSampleSentence":"...","nextStep":"...","transcript":"..."}'
+          ].join("\n")
+        }
+      ],
+      response_format: { type: "json_object" }
+    });
+
+    return { feedback: parseFeedbackContent(response.choices[0]?.message.content, transcript) };
+  }
+
+  const response = await getClient(config).responses.parse({
+    model: config.feedbackModel,
+    input: [
+      {
+        role: "system",
+        content:
+          "You are an IELTS Speaking vocabulary coach. Do not give an official IELTS score. Focus on whether idioms sound natural, whether they are overused, and safer alternatives."
+      },
+      {
+        role: "user",
+        content: buildFeedbackPrompt(input, transcript)
+      }
+    ],
+    text: {
+      format: zodTextFormat(feedbackSchema, "ielts_idiom_feedback")
+    }
+  });
+
+  return {
+    feedback: response.output_parsed ?? fallbackFeedback(transcript)
+  };
+}
+
 export const openAiService: AiService = {
   async generateIdioms(input) {
     const config = resolveAiProviderConfig();
@@ -160,39 +239,19 @@ export const openAiService: AiService = {
       await unlink(input.filePath).catch(() => undefined);
     }
 
-    const response = await getClient(config).responses.parse({
-      model: config.feedbackModel,
-      input: [
-        {
-          role: "system",
-          content:
-            "You are an IELTS Speaking vocabulary coach. Do not give an official IELTS score. Focus on whether idioms sound natural, whether they are overused, and safer alternatives."
-        },
-        {
-          role: "user",
-          content: [
-            `IELTS part: ${input.ieltsPart}`,
-            `Topic: ${input.topic}`,
-            `Prompt: ${input.prompt}`,
-            `Selected idioms: ${input.selectedIdioms.join(", ") || "none"}`,
-            `Transcript: ${transcript}`
-          ].join("\n")
-        }
-      ],
-      text: {
-        format: zodTextFormat(feedbackSchema, "ielts_idiom_feedback")
-      }
-    });
+    return reviewTranscript(
+      {
+        answerText: transcript,
+        ieltsPart: input.ieltsPart,
+        topic: input.topic,
+        prompt: input.prompt,
+        selectedIdioms: input.selectedIdioms
+      },
+      transcript
+    );
+  },
 
-    return {
-      feedback: response.output_parsed ?? {
-        naturalUsage: [],
-        forcedUsage: [],
-        betterAlternatives: [],
-        improvedSampleSentence: "",
-        nextStep: "Review the recording and try again.",
-        transcript
-      }
-    };
+  async reviewText(input: ReviewTextInput) {
+    return reviewTranscript(input, input.answerText);
   }
 };

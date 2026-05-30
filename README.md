@@ -17,7 +17,8 @@ The API runs at `http://127.0.0.1:8787`.
 
 The idiom bank and reciting flow do not need an API key.
 
-For local DeepSeek idiom generation, keep feedback disabled and add a fresh key to your private `.env`:
+For local DeepSeek idiom generation and typed-answer feedback, keep audio feedback disabled
+and add a fresh key to your private `.env`:
 
 ```bash
 VITE_ENABLE_AI_FEATURES=true

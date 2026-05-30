@@ -24,14 +24,19 @@ export function HistoryPage() {
             <strong>{session.topic}</strong>
             <p>{session.prompt}</p>
             <small>
-              {session.ieltsPart} - {session.recordingDuration}s - {session.feedbackStatus}
+              {session.ieltsPart} -{" "}
+              {session.recordingDuration ? `${session.recordingDuration}s` : "text answer"} -{" "}
+              {session.feedbackStatus}
             </small>
+            {session.answerText && <p>{session.answerText}</p>}
             {session.feedback?.nextStep && <p>{session.feedback.nextStep}</p>}
-            <audio
-              aria-label={`Playback for ${session.topic}`}
-              controls
-              src={URL.createObjectURL(session.recordingBlob)}
-            />
+            {session.recordingBlob && (
+              <audio
+                aria-label={`Playback for ${session.topic}`}
+                controls
+                src={URL.createObjectURL(session.recordingBlob)}
+              />
+            )}
           </article>
         ))}
       </div>

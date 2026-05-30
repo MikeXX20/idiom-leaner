@@ -55,5 +55,41 @@ export function createApiRouter(aiService: AiService) {
     }
   });
 
+  router.post("/feedback/text", async (req, res) => {
+    try {
+      const {
+        answerText,
+        ieltsPart,
+        topic,
+        prompt,
+        selectedIdioms = []
+      } = req.body as {
+        answerText?: string;
+        ieltsPart?: IeltsPart;
+        topic?: string;
+        prompt?: string;
+        selectedIdioms?: string[];
+      };
+
+      if (!answerText?.trim()) {
+        res.status(400).json({ error: "Answer text is required." });
+        return;
+      }
+
+      const result = await aiService.reviewText({
+        answerText: answerText.trim(),
+        ieltsPart: ieltsPart as IeltsPart,
+        topic: topic ?? "",
+        prompt: prompt ?? "",
+        selectedIdioms
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Feedback failed." });
+    }
+  });
+
   return router;
 }

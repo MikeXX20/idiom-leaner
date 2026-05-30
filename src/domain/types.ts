@@ -51,8 +51,9 @@ export interface PracticeSession {
   topic: string;
   prompt: string;
   selectedIdiomIds: string[];
-  recordingBlob: Blob;
-  recordingDuration: number;
+  answerText?: string;
+  recordingBlob?: Blob;
+  recordingDuration?: number;
   feedbackStatus: FeedbackStatus;
   feedback?: Feedback;
   createdAt: string;

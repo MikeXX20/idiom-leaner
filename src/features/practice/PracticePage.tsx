@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { generateIdioms, requestFeedback, type GeneratedIdiomPayload } from "../../api/aiClient";
+import {
+  generateIdioms,
+  requestFeedback,
+  requestTextFeedback,
+  type GeneratedIdiomPayload
+} from "../../api/aiClient";
 import { starterPrompts } from "../../domain/starterContent";
 import type { Idiom, SpeakingPrompt } from "../../domain/types";
 import { listIdioms, saveIdiom, saveSession } from "../../storage/repositories";
@@ -43,6 +48,7 @@ export function PracticePage() {
   const [idioms, setIdioms] = useState<Idiom[]>([]);
   const [selectedPromptId, setSelectedPromptId] = useState(starterPrompts[0].id);
   const [selectedIdiomIds, setSelectedIdiomIds] = useState<string[]>([]);
+  const [answerText, setAnswerText] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
   const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -140,6 +146,63 @@ export function PracticePage() {
     }
   }
 
+  async function handleTextFeedback() {
+    const trimmedAnswer = answerText.trim();
+
+    if (!trimmedAnswer) {
+      setMessage("Type or paste your answer before requesting text feedback.");
+      return;
+    }
+
+    setIsFeedbackLoading(true);
+    setFeedbackText("");
+    setMessage("");
+
+    const timestamp = now();
+    const recordingFields = recorder.recording
+      ? {
+          recordingBlob: recorder.recording.blob,
+          recordingDuration: recorder.recording.duration
+        }
+      : {};
+    const sessionBase = {
+      id: createId("session"),
+      ieltsPart: prompt.ieltsPart,
+      topic: prompt.topic,
+      prompt: prompt.prompt,
+      selectedIdiomIds,
+      answerText: trimmedAnswer,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      ...recordingFields
+    };
+
+    try {
+      const feedback = await requestTextFeedback({
+        answerText: trimmedAnswer,
+        ieltsPart: prompt.ieltsPart,
+        topic: prompt.topic,
+        prompt: prompt.prompt,
+        selectedIdioms: selectedIdioms.map((idiom) => idiom.phrase)
+      });
+      await saveSession({
+        ...sessionBase,
+        feedbackStatus: "complete",
+        feedback
+      });
+      setFeedbackText(feedback.nextStep);
+      setMessage("Session saved with text feedback.");
+    } catch {
+      await saveSession({
+        ...sessionBase,
+        feedbackStatus: "failed"
+      });
+      setMessage("Text feedback failed. Your answer was saved for review.");
+    } finally {
+      setIsFeedbackLoading(false);
+    }
+  }
+
   return (
     <section className="page-grid">
       <div className="practice-panel">
@@ -152,6 +215,7 @@ export function PracticePage() {
             onChange={(event) => {
               setSelectedPromptId(event.target.value);
               setSelectedIdiomIds([]);
+              setAnswerText("");
               setFeedbackText("");
             }}
           >
@@ -194,9 +258,31 @@ export function PracticePage() {
         )}
         {aiFeaturesEnabled && !feedbackFeaturesEnabled && (
           <p className="status">
-            DeepSeek generation is on. Audio feedback is paused, so use the generated idioms
-            for self-practice.
+            DeepSeek generation is on. Use text feedback for local review; audio feedback is
+            paused until a transcription provider is connected.
           </p>
+        )}
+        {aiFeaturesEnabled && (
+          <>
+            <label className="field">
+              Typed answer for AI feedback
+              <textarea
+                rows={6}
+                value={answerText}
+                placeholder="Type or paste your IELTS answer here for idiom feedback."
+                onChange={(event) => setAnswerText(event.target.value)}
+              />
+            </label>
+            <div className="button-row">
+              <button
+                className="secondary-button"
+                disabled={isFeedbackLoading}
+                onClick={handleTextFeedback}
+              >
+                {isFeedbackLoading ? "Reviewing..." : "Get text feedback"}
+              </button>
+            </div>
+          </>
         )}
         {recorder.error && <p className="status error">{recorder.error}</p>}
         {recorder.recording && (

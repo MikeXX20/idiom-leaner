@@ -45,4 +45,22 @@ describe("HistoryPage", () => {
 
     expect(await screen.findByText(/no practice sessions yet/i)).toBeInTheDocument();
   });
+
+  it("shows text-only practice sessions without audio playback", async () => {
+    vi.mocked(repositories.listSessions).mockResolvedValue([
+      {
+        ...session,
+        id: "session-text",
+        answerText: "The class had a steep learning curve.",
+        recordingBlob: undefined,
+        recordingDuration: undefined
+      }
+    ]);
+
+    render(<HistoryPage />);
+
+    expect(await screen.findByText(/text answer/i)).toBeInTheDocument();
+    expect(screen.getByText("The class had a steep learning curve.")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/playback/i)).not.toBeInTheDocument();
+  });
 });

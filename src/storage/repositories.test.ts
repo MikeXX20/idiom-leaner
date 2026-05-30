@@ -66,6 +66,6 @@ describe("repositories", () => {
     const sessions = await listSessions();
 
     expect(sessions).toHaveLength(1);
-    expect(sessions[0].recordingBlob.type).toBe("audio/webm");
+    expect(sessions[0]?.recordingBlob?.type).toBe("audio/webm");
   });
 });

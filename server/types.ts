@@ -24,6 +24,14 @@ export interface ReviewRecordingInput {
   selectedIdioms: string[];
 }
 
+export interface ReviewTextInput {
+  answerText: string;
+  ieltsPart: IeltsPart;
+  topic: string;
+  prompt: string;
+  selectedIdioms: string[];
+}
+
 export interface ReviewRecordingResult {
   feedback: FeedbackPayload;
 }
@@ -34,4 +42,5 @@ export interface AiService {
     ieltsPart: IeltsPart;
   }): Promise<GenerateIdiomsResult>;
   reviewRecording(input: ReviewRecordingInput): Promise<ReviewRecordingResult>;
+  reviewText(input: ReviewTextInput): Promise<ReviewRecordingResult>;
 }

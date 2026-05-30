@@ -38,6 +38,14 @@ describe("PracticePage", () => {
       nextStep: "Use one idiom in the next answer.",
       transcript: "The course had a steep learning curve."
     });
+    vi.mocked(aiClient.requestTextFeedback).mockResolvedValue({
+      naturalUsage: ["Good use of a steep learning curve."],
+      forcedUsage: [],
+      betterAlternatives: [],
+      improvedSampleSentence: "The course had a steep learning curve.",
+      nextStep: "Support the idiom with one clear detail.",
+      transcript: "The course had a steep learning curve."
+    });
   });
 
   it("shows a prompt and starter idioms", async () => {
@@ -105,5 +113,36 @@ describe("PracticePage", () => {
     expect(screen.getByRole("button", { name: /generate/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /get feedback/i })).not.toBeInTheDocument();
     expect(screen.getByText(/deepseek generation is on/i)).toBeInTheDocument();
+  });
+
+  it("saves text feedback when local AI is enabled without audio feedback", async () => {
+    const user = userEvent.setup();
+    vi.stubEnv("VITE_ENABLE_AI_FEATURES", "true");
+    vi.stubEnv("VITE_ENABLE_FEEDBACK_FEATURES", "false");
+
+    render(<PracticePage />);
+
+    await screen.findByText("a steep learning curve");
+    await user.click(screen.getByRole("checkbox", { name: /a steep learning curve/i }));
+    await user.type(
+      screen.getByLabelText(/typed answer for ai feedback/i),
+      "The course had a steep learning curve."
+    );
+    await user.click(screen.getByRole("button", { name: /get text feedback/i }));
+
+    await waitFor(() => {
+      expect(aiClient.requestTextFeedback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          answerText: "The course had a steep learning curve.",
+          selectedIdioms: ["a steep learning curve"]
+        })
+      );
+      expect(repositories.saveSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          answerText: "The course had a steep learning curve.",
+          feedbackStatus: "complete"
+        })
+      );
+    });
   });
 });

@@ -137,6 +137,11 @@ p {
   background: #fff;
 }
 
+.field textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
 .prompt-card,
 .feedback-box {
   border-left: 4px solid #254f8f;
